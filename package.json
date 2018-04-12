@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --watch ./ --exec node -- ./index.js",
-    "live": "nohup node ./index.js >> log &"
+    "live": "nohup nodemon --watch ./ --exec node -- ./index.js >> log &"
   },
   "repository": {
     "type": "git",

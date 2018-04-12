@@ -30,19 +30,23 @@ app.get("/", (req, res) => {
                     res.status(200).sendFile(path.join(__dirname, 'bulk.zip'));
                 });
                 
-                archive.on('error', function(err){
+                archive.on('error', (err) => {
                     console.log(err);
                     res.status(201).send('failed');
                 });
                 
                 archive.pipe(fos);
                 const has = req.query["list"].split(",");
+                console.log(`Request List = ${req.query["list"]}`);
+                
+                let count = 0;
                 for (let i = 0; i < files.length; i++) {
-                    if (has.indexOf(files[i]) == -1) {
+                    if (has.indexOf(files[i]) == -1 && count < config.MAX_FILES) {
                         fn = files[i] + ".json";
                         archive.file(path.join('files', fn), {
                             name: fn
                         });
+                        count += 1;
                     }
                 }
                 archive.finalize();
