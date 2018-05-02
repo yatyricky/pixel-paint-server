@@ -42,7 +42,7 @@ class PixelItem extends React.Component {
     }
 
     handleClick() {
-        if (this.state.tagsValue.match(/^[a-zA-Z0-9]+(,[a-zA-Z0-9]+)*$/g)) {
+        if (this.state.tagsValue.match(/^[a-z0-9]+(,[a-z0-9]+)*$/g)) {
             this.setState({ requesting: "disabled" });
             const secret = new URL(window.location.href).searchParams.get("secret");
             axios({
