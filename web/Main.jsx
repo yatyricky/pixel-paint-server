@@ -10,7 +10,8 @@ class PixelItem extends React.Component {
         this.validateInput = this.validateInput.bind(this);
         this.requestTag = this.requestTag.bind(this);
         this.state = {
-            tagsValue: ""
+            tagsValue: "",
+            requesting: false
         };
         setTimeout(() => {
             this.requestTag();
@@ -19,15 +20,18 @@ class PixelItem extends React.Component {
 
     requestTag() {
         const secret = new URL(window.location.href).searchParams.get("secret");
+        this.setState({ requesting: "disabled" });
         axios({
             url: `/gettag?name=${this.props.name}&secret=${secret}`,
             method: "get",
         }).then((response) => {
             this.setState({
-                tagsValue: response.data.join(",")
+                tagsValue: response.data.join(","),
+                requesting: false
             });
         }).catch((error) => {
-            this.appendMessage(error.response);
+            this.props.parentRef.appendMessage(error.response);
+            this.setState({ requesting: false });
         });
     }
 
@@ -38,7 +42,22 @@ class PixelItem extends React.Component {
     }
 
     handleClick() {
-        this.props.setTags(this.props.name, this.state.tagsValue);
+        if (this.state.tagsValue.match(/^[a-zA-Z0-9]+(,[a-zA-Z0-9]+)*$/g)) {
+            this.setState({ requesting: "disabled" });
+            const secret = new URL(window.location.href).searchParams.get("secret");
+            axios({
+                url: `/update?name=${this.props.name}&tags=${this.state.tagsValue}&secret=${secret}`,
+                method: "get",
+            }).then((response) => {
+                this.props.parentRef.appendMessage(response.data);
+                this.setState({ requesting: false });
+            }).catch((error) => {
+                this.props.parentRef.appendMessage(error.response);
+                this.setState({ requesting: false });
+            });
+        } else {
+            this.props.parentRef.appendMessage("Example: abc123,efg,345,test777");
+        }
     }
 
     render() {
@@ -47,7 +66,7 @@ class PixelItem extends React.Component {
                 <td><img src={`/${this.props.name}.png`} /></td>
                 <td>{this.props.name}</td>
                 <td><input type="text" ref="inputTags" onChange={this.validateInput} value={this.state.tagsValue} /></td>
-                <td><button type="button" onClick={this.handleClick}>Commit</button></td>
+                <td><button type="button" disabled={this.state.requesting} onClick={this.handleClick}>Commit</button></td>
             </tr>
         );
     }
@@ -57,10 +76,7 @@ class Main extends React.Component {
 
     constructor() {
         super();
-
         this.requestList = this.requestList.bind(this);
-        this.setTags = this.setTags.bind(this);
-
         this.state = {
             entries: [],
             messages: [(<div key="0">Messages:</div>)]
@@ -79,18 +95,6 @@ class Main extends React.Component {
         });
     }
 
-    setTags(name, tags) {
-        const secret = new URL(window.location.href).searchParams.get("secret");
-        axios({
-            url: `/update?name=${name}&tags=${tags}&secret=${secret}`,
-            method: "get",
-        }).then((response) => {
-            this.appendMessage(response.data);
-        }).catch((error) => {
-            this.appendMessage(error.response);
-        });
-    }
-
     requestList() {
         const secret = new URL(window.location.href).searchParams.get("secret");
         const axiosConfig = {
@@ -103,18 +107,18 @@ class Main extends React.Component {
             for (let i = 0; i < response.data.length; i++) {
                 const element = response.data[i];
                 arr.push(
-                    <PixelItem key={i} name={element} setTags={this.setTags} />
+                    <PixelItem key={i} name={element} parentRef={this} />
                 );
-                this.setState({
-                    entries: arr
-                });
             }
+            this.setState({
+                entries: arr
+            });
         }).catch((error) => {
             this.appendMessage(error.response);
         });
     }
 
-    render () {
+    render() {
         return (
             <div>
                 <div className="resultPane">{this.state.messages}</div>
