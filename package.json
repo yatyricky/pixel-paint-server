@@ -6,7 +6,7 @@
   "scripts": {
     "devw": "webpack -d --watch",
     "devs": "nodemon --watch ./ --exec node -- ./index.js",
-    "live": "nohup nodemon --watch ./ --exec node -- ./index.js >> log &"
+    "live": "webpack -p & nohup nodemon --watch ./ --exec node -- ./index.js >> log &"
   },
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
     "archiver": "^2.1.1",
     "axios": "^0.18.0",
     "express": "^4.16.3",
+    "mongodb": "^3.0.7",
     "react": "^16.3.2",
     "react-dom": "^16.3.2"
   },

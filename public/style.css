@@ -1,0 +1,13 @@
+img {
+    width: 80px;
+    image-rendering: auto;
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+}
+
+.resultPane {
+    position: fixed;
+    right: 0px;
+    top: 0px;
+    width: 50%;
+}
