@@ -12,7 +12,7 @@ class PixelItem extends React.Component {
         this.requestTag = this.requestTag.bind(this);
         this.state = {
             tagsValue: "",
-            lovesValue: "",
+            lovesValue: 0,
             requesting: false
         };
         setTimeout(() => {

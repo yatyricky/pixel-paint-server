@@ -131,10 +131,39 @@ app.get("/update", (req, res) => {
                         $set: {
                             name: req.query.name,
                             tags: req.query.tags.split(","),
-                            loves: req.query.loves
+                            loves: parseInt(req.query.loves)
                         }
                     }, {
                         upsert: true
+                    }, (err, dbres) => {
+                        if (err) {
+                            res.status(500).send(`Internal error ${JSON.stringify(err)}`);
+                        } else {
+                            db.close();
+                            res.status(200).send("Upsert OK");
+                        }
+                    }
+                );
+            }
+        });
+    } else {
+        res.status(400).send("Bad request: no name and tags received");
+    }
+});
+
+app.get("/love", (req, res) => {
+    if (req.query.hasOwnProperty("name") && req.query.hasOwnProperty("num")) {
+        MongoClient.connect("mongodb://localhost:27017/", (err, db) => {
+            if (err) {
+                res.status(500).send(`Internal error ${JSON.stringify(err)}`);
+            } else {
+                db.db("pixels").collection("filedata").updateOne(
+                    {
+                        name: req.query.name
+                    }, {
+                        $inc: {
+                            loves: parseInt(req.query.num)
+                        }
                     }, (err, dbres) => {
                         if (err) {
                             res.status(500).send(`Internal error ${JSON.stringify(err)}`);
