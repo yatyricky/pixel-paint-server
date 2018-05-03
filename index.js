@@ -101,7 +101,10 @@ app.get("/getdata", (req, res) => {
                                 loves: loves
                             });
                         } else if (dbres.length == 0) {
-                            res.status(200).send([]);
+                            res.status(200).send({
+                                tags: [],
+                                loves: 0
+                            });
                         } else {
                             res.status(201).send(`Warning: duplicated ${req.query.name}`);
                         }
