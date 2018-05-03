@@ -79,7 +79,7 @@ app.get("/list", (req, res) => {
     res.status(200).send(files);
 });
 
-app.get("/gettag", (req, res) => {
+app.get("/getdata", (req, res) => {
     if (req.query.hasOwnProperty("name")) {
         MongoClient.connect("mongodb://localhost:27017/", (err, db) => {
             if (err) {
@@ -92,7 +92,14 @@ app.get("/gettag", (req, res) => {
                         res.status(500).send(`Internal error ${JSON.stringify(err)}`);
                     } else {
                         if (dbres.length == 1) {
-                            res.status(200).send(dbres[0].tags);
+                            let loves = dbres[0].loves;
+                            if (loves === undefined) {
+                                loves = 0;
+                            }
+                            res.status(200).send({
+                                tags: dbres[0].tags,
+                                loves: loves
+                            });
                         } else if (dbres.length == 0) {
                             res.status(200).send([]);
                         } else {
@@ -109,7 +116,7 @@ app.get("/gettag", (req, res) => {
 });
 
 app.get("/update", (req, res) => {
-    if (req.query.hasOwnProperty("name") && req.query.hasOwnProperty("tags")) {
+    if (req.query.hasOwnProperty("name") && req.query.hasOwnProperty("tags") && req.query.hasOwnProperty("loves")) {
         MongoClient.connect("mongodb://localhost:27017/", (err, db) => {
             if (err) {
                 res.status(500).send(`Internal error ${JSON.stringify(err)}`);
@@ -120,7 +127,8 @@ app.get("/update", (req, res) => {
                     }, {
                         $set: {
                             name: req.query.name,
-                            tags: req.query.tags.split(",")
+                            tags: req.query.tags.split(","),
+                            loves: req.query.loves
                         }
                     }, {
                         upsert: true

@@ -8,9 +8,11 @@ class PixelItem extends React.Component {
         super(props);
         this.handleClick = this.handleClick.bind(this);
         this.validateInput = this.validateInput.bind(this);
+        this.validateInputLove = this.validateInputLove.bind(this);
         this.requestTag = this.requestTag.bind(this);
         this.state = {
             tagsValue: "",
+            lovesValue: "",
             requesting: false
         };
         setTimeout(() => {
@@ -22,11 +24,12 @@ class PixelItem extends React.Component {
         const secret = new URL(window.location.href).searchParams.get("secret");
         this.setState({ requesting: "disabled" });
         axios({
-            url: `/gettag?name=${this.props.name}&secret=${secret}`,
+            url: `/getdata?name=${this.props.name}&secret=${secret}`,
             method: "get",
         }).then((response) => {
             this.setState({
-                tagsValue: response.data.join(","),
+                tagsValue: response.data.tags.join(","),
+                lovesValue: response.data.loves,
                 requesting: false
             });
         }).catch((error) => {
@@ -41,12 +44,18 @@ class PixelItem extends React.Component {
         });
     }
 
+    validateInputLove() {
+        this.setState({
+            lovesValue: this.refs.inputLoves.value
+        });
+    }
+
     handleClick() {
         if (this.state.tagsValue.match(/^[a-z0-9]+(,[a-z0-9]+)*$/g)) {
             this.setState({ requesting: "disabled" });
             const secret = new URL(window.location.href).searchParams.get("secret");
             axios({
-                url: `/update?name=${this.props.name}&tags=${this.state.tagsValue}&secret=${secret}`,
+                url: `/update?name=${this.props.name}&tags=${this.state.tagsValue}&loves=${this.state.lovesValue}&secret=${secret}`,
                 method: "get",
             }).then((response) => {
                 this.props.parentRef.appendMessage(response.data);
@@ -66,6 +75,7 @@ class PixelItem extends React.Component {
                 <td><img src={`/${this.props.name}.png`} /></td>
                 <td>{this.props.name}</td>
                 <td><input type="text" ref="inputTags" onChange={this.validateInput} value={this.state.tagsValue} /></td>
+                <td><input type="text" ref="inputLoves" onChange={this.validateInputLove} value={this.state.lovesValue} /></td>
                 <td><button type="button" disabled={this.state.requesting} onClick={this.handleClick}>Commit</button></td>
             </tr>
         );
@@ -128,6 +138,7 @@ class Main extends React.Component {
                             <th>Image</th>
                             <th>Name</th>
                             <th>Tags</th>
+                            <th>Loves</th>
                             <th>Commit</th>
                         </tr>
                     </thead>
