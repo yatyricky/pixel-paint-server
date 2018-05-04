@@ -34,37 +34,46 @@ app.use((req, res, next) => {
     }
 });
 
-app.get("/", (req, res) => {
+app.get("/getsome", (req, res) => {
     if (req.query.hasOwnProperty("list")) {
-        const fos = fs.createWriteStream("bulk.zip");
-        const archive = archiver("zip");
-
-        fos.on("close", () => {
-            console.log(archive.pointer() + " total bytes");
-            console.log("archiver has been finalized and the output file descriptor has closed.");
-            res.status(200).sendFile(path.join(__dirname, "bulk.zip"));
-        });
-
-        archive.on("error", (err) => {
-            console.log(err);
-            res.status(201).send("failed");
-        });
-
-        archive.pipe(fos);
         const has = req.query["list"].split(",");
-        console.log(`Request List = ${req.query["list"]}`);
-
         let count = 0;
+        const selection = [];
         for (let i = 0; i < files.length; i++) {
             if (has.indexOf(files[i]) == -1 && count < config.MAX_FILES) {
-                const fn = files[i] + ".json";
-                archive.file(path.join("files", fn), {
-                    name: fn
-                });
+                selection.push(files[i] + ".json");
                 count += 1;
             }
         }
-        archive.finalize();
+
+        if (selection.length > 0) {
+            const fos = fs.createWriteStream("bulk.zip");
+            const archive = archiver("zip");
+
+            fos.on("close", () => {
+                console.log(archive.pointer() + " total bytes");
+                console.log("archiver has been finalized and the output file descriptor has closed.");
+                res.status(200).sendFile(path.join(__dirname, "bulk.zip"));
+            });
+
+            archive.on("error", (err) => {
+                console.log(err);
+                res.status(500).send("archive failed");
+            });
+
+            archive.pipe(fos);
+            console.log(`Request List = ${req.query["list"]}`);
+
+            for (let i = 0; i < selection.length; i++) {
+                archive.file(path.join("files", selection[i]), {
+                    name: selection[i]
+                });
+            }
+            archive.finalize();
+        } else {
+            console.log("No more updates");
+            res.status(201).send("No more");
+        }
     } else {
         console.log("no list");
         res.status(400).send("bad request");

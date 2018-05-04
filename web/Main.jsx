@@ -12,7 +12,7 @@ class PixelItem extends React.Component {
         this.requestTag = this.requestTag.bind(this);
         this.state = {
             tagsValue: "",
-            lovesValue: 0,
+            lovesValue: "",
             requesting: false
         };
         setTimeout(() => {
@@ -29,11 +29,11 @@ class PixelItem extends React.Component {
         }).then((response) => {
             this.setState({
                 tagsValue: response.data.tags.join(","),
-                lovesValue: response.data.loves,
+                lovesValue: response.data.loves.toString(),
                 requesting: false
             });
         }).catch((error) => {
-            this.props.parentRef.appendMessage(error.response);
+            this.props.parentRef.appendMessage(error.response, "err");
             this.setState({ requesting: false });
         });
     }
@@ -45,8 +45,12 @@ class PixelItem extends React.Component {
     }
 
     validateInputLove() {
+        let val = parseInt(this.refs.inputLoves.value);
+        if (isNaN(val)) {
+            val = 0;
+        }
         this.setState({
-            lovesValue: this.refs.inputLoves.value
+            lovesValue: val.toString()
         });
     }
 
@@ -54,18 +58,20 @@ class PixelItem extends React.Component {
         if (this.state.tagsValue.match(/^[a-z0-9]+(,[a-z0-9]+)*$/g)) {
             this.setState({ requesting: "disabled" });
             const secret = new URL(window.location.href).searchParams.get("secret");
+            const url = `/update?name=${this.props.name}&tags=${this.state.tagsValue}&loves=${parseInt(this.state.lovesValue)}&secret=${secret}`;
+            this.props.parentRef.appendMessage(`Request sent: ${url}`, "ok");
             axios({
-                url: `/update?name=${this.props.name}&tags=${this.state.tagsValue}&loves=${this.state.lovesValue}&secret=${secret}`,
+                url: url,
                 method: "get",
             }).then((response) => {
-                this.props.parentRef.appendMessage(response.data);
+                this.props.parentRef.appendMessage(response.data, "ok");
                 this.setState({ requesting: false });
             }).catch((error) => {
-                this.props.parentRef.appendMessage(error.response);
+                this.props.parentRef.appendMessage(error.response, "err");
                 this.setState({ requesting: false });
             });
         } else {
-            this.props.parentRef.appendMessage("Example: abc123,efg,345,test777");
+            this.props.parentRef.appendMessage("Example: abc123,efg,345,test777", "err");
         }
     }
 
@@ -95,10 +101,23 @@ class Main extends React.Component {
         this.requestList();
     }
 
-    appendMessage(msg) {
+    appendMessage(msg, prefix) {
         const newarr = this.state.messages;
+        let style = {};
+        if (prefix == "ok") {
+            style = {
+                color: "green"
+            };
+        } else if (prefix == "err") {
+            style = {
+                color: "red"
+            };
+        }
         newarr.push(
-            <div key={this.state.messages.length}>{JSON.stringify(msg)}</div>
+            <div key={this.state.messages.length}>
+                <span style={style}>[{prefix}]</span>
+                <span>{JSON.stringify(msg)}</span>
+            </div>
         );
         this.setState({
             messages: newarr
@@ -124,7 +143,7 @@ class Main extends React.Component {
                 entries: arr
             });
         }).catch((error) => {
-            this.appendMessage(error.response);
+            this.appendMessage(error.response, "err");
         });
     }
 
