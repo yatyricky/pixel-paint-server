@@ -1,14 +1,14 @@
-const webpack = require('webpack');
-const path = require('path');
+const webpack = require("webpack");
+const path = require("path");
 
-const BUILD_DIR = path.join(__dirname, '/public');
-const APP_DIR = path.join(__dirname, '/web');
+const BUILD_DIR = path.join(__dirname, "/public");
+const APP_DIR = path.join(__dirname, "/web");
 
 const config = {
-  entry: path.join(APP_DIR + '/Main.jsx'),
+  entry: path.join(APP_DIR + "/Main.jsx"),
   output: {
     path: BUILD_DIR,
-    filename: 'bundle.js'
+    filename: "bundle.js"
   },
   module: {
     rules: [
@@ -16,7 +16,7 @@ const config = {
         test: /\.jsx?/,
         exclude: /(node_modules|bower_components)/,
         use: {
-          loader: 'babel-loader',
+          loader: "babel-loader",
         }
       }
     ]
